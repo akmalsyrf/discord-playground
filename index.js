@@ -43,6 +43,32 @@ app.get('/followers', async (req, res) => {
   }
 });
 
+app.get('/check-follower/:username', async (req, res) => {
+  try {
+    const guildId = '865122839047831552';
+    const channelId = '865122839047831555';
+    const usernameToCheck = req.params.username;
+
+    const guild = await client.guilds.fetch(guildId);
+    const channel = guild.channels.cache.get(channelId);
+
+    if (channel) {
+      const member = await channel.guild.members.fetch({ query: usernameToCheck, limit: 1 });
+      
+      if (member.size > 0) {
+        res.json({ message: `${usernameToCheck} is following the channel` });
+      } else {
+        res.json({ message: `${usernameToCheck} is not following the channel` });
+      }
+    } else {
+      res.status(404).json({ message: 'Channel not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 app.use((_, res) => res.sendStatus(404))
 
 app.listen(port, () => {
