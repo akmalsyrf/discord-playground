@@ -1,5 +1,8 @@
-const { Client, GatewayIntentBits } = require('discord.js');
 require('dotenv').config()
+const { Client, GatewayIntentBits } = require('discord.js');
+const express = require('express')
+const app = express()
+const port = 3000
 
 const client = new Client({
   intents: [
@@ -12,15 +15,36 @@ client.once('ready', () => {
   console.log(`Bot ${client.user.tag} telah aktif`);
 });
 
-client.on('guildMembersChunk', (members) => {
-    // Do something with the list of members, e.g., filter by channel
-    const channelId = 'your_channel_id';
-    const followers = members.filter(member => member.voice.channel?.id === channelId);
-  
-    // Log the names of followers
-    for (const follower of followers) {
-      console.log(follower.user.tag);
-    }
-  });
+client.login(process.env.BOT_TOKEN)
 
-client.login(process.env.BOT_TOKEN);
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+
+app.get('/', (_, res) => res.send("Hello world"))
+
+app.get('/followers', async (req, res) => {
+  try {
+    const guildId = '865122839047831552';
+    const channelId = '865122839047831555';
+
+    const guild = await client.guilds.fetch(guildId);
+    const channel = guild.channels.cache.get(channelId);
+
+    if (channel) {
+      const followers = await channel.guild.members.fetch();
+      const followersList = followers.map(member => member.user.tag);
+      res.json({ followers: followersList });
+    } else {
+      res.status(404).json({ message: 'Channel not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.use((_, res) => res.sendStatus(404))
+
+app.listen(port, () => {
+    console.log(`Server is listening on port ${port}`)
+})
