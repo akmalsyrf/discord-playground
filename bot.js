@@ -15,12 +15,20 @@ client.once('ready', () => {
   console.log(`Bot ${client.user.tag} telah aktif`);
 });
 
+client.on('raw', async (packet) => {
+  if (!['INVITE_CREATE'].includes(packet.t)) return;
+
+  const { invite, guild_id, channel_id } = packet.d;
+
+  console.log(`Bot diundang ke server ${guild_id} melalui undangan di channel ${channel_id}`);
+});
+
 client.login(process.env.BOT_TOKEN)
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.get('/', (_, res) => res.send("Hello world"))
+app.get('/', (_, res) => res.send("Hello world bot"))
 
 app.get('/followers', async (req, res) => {
   try {
